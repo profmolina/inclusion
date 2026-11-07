@@ -1,0 +1,698 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Aventura Matemática en Ucayali - 4° Primaria</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts: Fredoka & Inter -->
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            fredoka: ['Fredoka', 'sans-serif'],
+          },
+          colors: {
+            jungle: {
+              50: '#f0fdf4',
+              100: '#dcfce7',
+              500: '#22c55e',
+              600: '#16a34a',
+              700: '#15803d',
+              800: '#166534',
+              900: '#14532d',
+            },
+            coffee: {
+              500: '#8b5cf6',
+              600: '#a75d00',
+              700: '#78350f',
+              800: '#451a03',
+            },
+            amberCustom: '#f59e0b',
+          },
+          animation: {
+            bounceSlow: 'bounce 2s infinite',
+            pulseFast: 'pulse 1s infinite',
+            float: 'float 3s ease-in-out infinite',
+          },
+          keyframes: {
+            float: {
+              '0%, 100%': { transform: 'translateY(0px)' },
+              '50%': { transform: 'translateY(-10px)' },
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body {
+      font-family: 'Fredoka', sans-serif;
+      background: linear-gradient(135deg, #064e3b 0%, #022c22 100%);
+      min-height: 100vh;
+    }
+    .quiz-card {
+      background: rgba(255, 255, 255, 0.96);
+      backdrop-filter: blur(10px);
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3), 0 10px 10px -5px rgba(0, 0, 0, 0.2);
+    }
+    .btn-option {
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .btn-option:hover {
+      transform: translateY(-4px) scale(1.01);
+    }
+    .btn-option:active {
+      transform: translateY(1px) scale(0.99);
+    }
+    /* Scrollbar personalizada */
+    ::-webkit-scrollbar {
+      width: 8px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #064e3b;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #22c55e;
+      border-radius: 4px;
+    }
+  </style>
+</head>
+<body class="text-slate-800 antialiased flex flex-col justify-between min-h-screen relative overflow-x-hidden">
+
+  <!-- Canvas de Confeti -->
+  <canvas id="confettiCanvas" class="fixed inset-0 pointer-events-none z-50"></canvas>
+
+  <!-- Contenedor Principal -->
+  <div class="container mx-auto px-4 py-6 flex-grow flex flex-col justify-center items-center max-w-4xl">
+    
+    <!-- HEADER GENERAL -->
+    <header class="w-full text-center mb-4">
+      <div class="inline-flex items-center gap-2 bg-emerald-500/20 text-emerald-300 px-4 py-1.5 rounded-full border border-emerald-500/30 text-sm font-semibold mb-2">
+        <span>🌿 Matemática 4.° Grado</span>
+        <span>•</span>
+        <span>Ucayali - Sepahua</span>
+      </div>
+      <h1 class="text-3xl md:text-5xl font-black text-amber-400 drop-shadow-md tracking-wide">
+        LA COSECHA DE CAFÉ Y CACAO ☕📦
+      </h1>
+    </header>
+
+    <!-- PANTALLA 1: REGISTRO / INICIO -->
+    <div id="screen-login" class="quiz-card w-full rounded-3xl p-6 md:p-10 text-center border-4 border-amber-400">
+      <div class="text-6xl mb-4 animate-float">🦜</div>
+      <h2 class="text-2xl md:text-3xl font-bold text-emerald-800 mb-3">¡Bienvenido(a), Gran Cosechador(a)!</h2>
+      <p class="text-slate-600 text-base md:text-lg mb-6 leading-relaxed">
+        Acompaña a <strong class="text-emerald-700">Dora, Juan y Raúl</strong> a resolver los retos matemáticos de la cosecha en Coronel Portillo y Sepahua.
+      </p>
+
+      <form id="loginForm" onsubmit="startGame(event)" class="max-w-md mx-auto space-y-4">
+        <div class="text-left">
+          <label for="studentName" class="block text-sm font-bold text-emerald-900 mb-1 ml-1">
+            <i class="fa-solid fa-user-astronaut text-amber-500 mr-1"></i> Nombres y Apellidos completados:
+          </label>
+          <input type="text" id="studentName" required placeholder="Ej. Ana Lucía Torres Vega"
+            class="w-full px-5 py-3.5 text-lg rounded-2xl border-2 border-emerald-300 focus:border-amber-400 focus:outline-none transition shadow-inner bg-emerald-50/50">
+        </div>
+        <button type="submit" 
+          class="w-full bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-black text-xl py-4 rounded-2xl shadow-lg hover:shadow-xl transform transition hover:-translate-y-1 active:translate-y-0 flex items-center justify-center gap-3">
+          <span>¡COMENZAR LA AVENTURA!</span>
+          <i class="fa-solid fa-play"></i>
+        </button>
+      </form>
+    </div>
+
+    <!-- PANTALLA 2: JUEGO / PREGUNTAS -->
+    <div id="screen-game" class="quiz-card w-full rounded-3xl p-5 md:p-8 border-4 border-emerald-500 hidden">
+      
+      <!-- Barra superior de estado -->
+      <div class="flex flex-wrap justify-between items-center gap-3 pb-4 mb-4 border-b-2 border-slate-100">
+        <div class="flex items-center gap-2">
+          <span class="bg-emerald-100 text-emerald-800 px-3 py-1 rounded-full font-bold text-sm" id="level-badge">
+            Nivel 1 / 10
+          </span>
+          <span class="text-slate-500 text-xs font-semibold hidden sm:inline" id="student-display">
+            Estudiante
+          </span>
+        </div>
+        
+        <!-- Puntuación actual -->
+        <div class="flex items-center gap-4">
+          <div class="flex items-center gap-1 text-amber-600 font-bold text-lg">
+            <i class="fa-solid fa-star"></i>
+            <span id="score-display">0</span> pts
+          </div>
+          <div class="flex items-center gap-1.5 bg-slate-100 px-3 py-1 rounded-full text-slate-700 font-mono text-sm font-bold">
+            <i class="fa-solid fa-stopwatch text-emerald-600"></i>
+            <span id="timer-display">00:00</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Barra de progreso visual -->
+      <div class="w-full bg-slate-200 h-3 rounded-full overflow-hidden mb-6">
+        <div id="progress-bar" class="bg-gradient-to-r from-emerald-400 to-amber-400 h-full w-10 transition-all duration-300"></div>
+      </div>
+
+      <!-- Área Dinámica del Ejercicio -->
+      <div id="question-container" class="space-y-6">
+        <!-- El contenido se inyecta dinámicamente con JavaScript -->
+      </div>
+
+      <!-- Contenedor de Feedback Modal / Alerta Cordial -->
+      <div id="feedback-box" class="hidden mt-6 p-4 rounded-2xl border-2 transition-all duration-300">
+        <div class="flex items-start gap-3">
+          <div id="feedback-icon" class="text-3xl shrink-0"></div>
+          <div>
+            <h4 id="feedback-title" class="font-bold text-lg"></h4>
+            <p id="feedback-text" class="text-sm md:text-base text-slate-700 mt-1"></p>
+          </div>
+        </div>
+        <button id="btn-next" onclick="nextQuestion()" class="mt-4 w-full md:w-auto px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl transition flex items-center justify-center gap-2 float-right">
+          <span>Siguiente reto</span>
+          <i class="fa-solid fa-arrow-right"></i>
+        </button>
+        <div class="clear-both"></div>
+      </div>
+
+    </div>
+
+    <!-- PANTALLA 3: RESULTADOS Y GUARDADO -->
+    <div id="screen-results" class="quiz-card w-full rounded-3xl p-6 md:p-10 text-center border-4 border-amber-400 hidden space-y-6">
+      <div id="trophy-icon" class="text-7xl animate-bounceSlow">🏆</div>
+      
+      <div>
+        <h2 class="text-3xl font-black text-emerald-900">¡Reto Completado!</h2>
+        <p id="result-subtitle" class="text-slate-600 text-lg mt-1">Has terminado la recolección de aprendizajes en Ucayali.</p>
+      </div>
+
+      <!-- Resumen de Tarjetas -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4 my-6">
+        <div class="bg-amber-50 p-4 rounded-2xl border border-amber-200">
+          <span class="text-xs font-bold text-amber-700 uppercase tracking-wider block mb-1">Estudiante</span>
+          <span id="res-name" class="text-lg font-black text-slate-800 break-words">-</span>
+        </div>
+        <div class="bg-emerald-50 p-4 rounded-2xl border border-emerald-200">
+          <span class="text-xs font-bold text-emerald-700 uppercase tracking-wider block mb-1">Puntaje Final</span>
+          <span id="res-score" class="text-2xl font-black text-emerald-700">0/10</span>
+        </div>
+        <div class="bg-blue-50 p-4 rounded-2xl border border-blue-200">
+          <span class="text-xs font-bold text-blue-700 uppercase tracking-wider block mb-1">Tiempo Total</span>
+          <span id="res-time" class="text-2xl font-black text-blue-700">0 s</span>
+        </div>
+      </div>
+
+      <!-- Detalle por ítem -->
+      <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200 text-left">
+        <h4 class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Resumen por reto:</h4>
+        <div id="res-detail" class="font-mono text-sm md:text-base font-bold text-slate-700 break-words bg-white p-3 rounded-xl border border-slate-200">
+          1✓ 2✗ 3✓...
+        </div>
+      </div>
+
+      <!-- Estado del Envío a Google Sheets -->
+      <div id="sheet-status" class="p-4 rounded-2xl text-center text-sm font-bold flex items-center justify-center gap-2 bg-slate-100 text-slate-600">
+        <i class="fa-solid fa-spinner fa-spin"></i>
+        <span>Guardando resultados en el registro docente...</span>
+      </div>
+
+      <!-- Botón para Reiniciar -->
+      <button onclick="restartGame()" class="w-full md:w-auto px-8 py-3.5 bg-gradient-to-r from-emerald-600 to-teal-600 text-white font-bold text-lg rounded-2xl hover:opacity-90 transition shadow-md">
+        <i class="fa-solid fa-rotate-right mr-2"></i> Intentar otra vez
+      </button>
+    </div>
+
+  </div>
+
+  <!-- FOOTER -->
+  <footer class="text-center py-4 text-emerald-200 text-xs font-medium">
+    <p>Ministerio de Educación - Cuaderno de Autoaprendizaje Matemática 4° Primaria</p>
+    <p class="opacity-75">Gamificado para aula interactiva</p>
+  </footer>
+
+  <!-- JAVASCRIPT DEL JUEGO -->
+  <script>
+    // ==========================================
+    // 1. CONFIGURACIÓN E INTEGRACIÓN DOCENTE
+    // ==========================================
+    var URL_SCRIPT = "https://script.google.com/macros/s/AKfycbwgb3Kf39ZSwoiForDXJNdWSLu2j2shrddXjohggM9H9iMtkxDqbkVAJ3md8uNzoHwg/exec"; // Reemplazar con la URL desplegada de Google Apps Script
+
+    // Estado del Juego
+    let studentName = "";
+    let currentLevel = 0;
+    let score = 0;
+    let startTime = 0;
+    let timerInterval = null;
+    let totalSeconds = 0;
+    let answersRecord = []; // Guarda '1✓', '2✗', etc.
+
+    // Web Audio API para Efectos de Sonido
+    const AudioContext = window.AudioContext || window.webkitAudioContext;
+    let audioCtx = null;
+
+    function playSound(type) {
+      try {
+        if (!audioCtx) audioCtx = new AudioContext();
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+
+        if (type === 'correct') {
+          // Sonido de Acierto Alegre (Arpegio rápido)
+          const now = audioCtx.currentTime;
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(523.25, now); // C5
+          osc.frequency.setValueAtTime(659.25, now + 0.08); // E5
+          osc.frequency.setValueAtTime(783.99, now + 0.16); // G5
+          gain.gain.setValueAtTime(0.2, now);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
+          osc.start(now);
+          osc.stop(now + 0.35);
+        } else if (type === 'wrong') {
+          // Sonido de Error Suave (Tono bajo amortiguado)
+          const now = audioCtx.currentTime;
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(220, now); // A3
+          osc.frequency.setValueAtTime(174.61, now + 0.12); // F3
+          gain.gain.setValueAtTime(0.2, now);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.3);
+          osc.start(now);
+          osc.stop(now + 0.3);
+        }
+      } catch (e) {
+        console.log("Audio no soportado o bloqueado");
+      }
+    }
+
+    // ==========================================
+    // 2. BANCO DE NIVELES / PREGUNTAS (10 ETAPAS)
+    // ==========================================
+    const questions = [
+      {
+        id: 1,
+        title: "Reto 1: Cosechando en Coronel Portillo 📦",
+        question: "Dora dice: 'Nosotros cosechamos café y cacao'. Juan responde: 'Nosotros TAMBIÉN'. ¿Con qué expresión cuantificamos lo que hace la familia de Juan respecto a la de Dora?",
+        type: "options",
+        options: [
+          { text: "También cosechan café y cacao", correct: true },
+          { text: "Ninguno cosecha productos", correct: false },
+          { text: "Solo cosechan aguaje", correct: false }
+        ],
+        explanation: "¡Exacto! Ambos grupos familiares comparten la misma actividad agrícola de cultivar café y cacao."
+      },
+      {
+        id: 2,
+        title: "Reto 2: Geografía de Ucayali 🗺️",
+        question: "Raúl vive en Coronel Portillo, una provincia de la Amazonía peruana. ¿En qué departamento del Perú se presenta esta situación agrícola?",
+        type: "options",
+        options: [
+          { text: "Ucayali", correct: true },
+          { text: "Cusco", correct: false },
+          { text: "Lima", correct: false },
+          { text: "Piura", correct: false }
+        ],
+        explanation: "¡Excelente! Coronel Portillo es una provincia emblemática del departamento de Ucayali."
+      },
+      {
+        id: 3,
+        title: "Reto 3: Cuantificadores de Cosecha ⚖️",
+        question: "Observamos los costales en la feria. Si TODOS los sacos de cacao están cerrados y listos para la venta, ¿cuál de las siguientes afirmaciones es CORRECTA?",
+        type: "options",
+        options: [
+          { text: "Todos los sacos de café y cacao están cerrados.", correct: true },
+          { text: "Ningún saco está disponible para la feria.", correct: false },
+          { text: "Algunos sacos son de manzanas.", correct: false }
+        ],
+        explanation: "¡Muy bien! Usamos 'todos' para indicar que la totalidad de los objetos cumple con una condición."
+      },
+      {
+        id: 4,
+        title: "Reto 4: Representación con Chapas 🔴🟢",
+        question: "Raúl representó con chapas la cosecha. Dora juntó 14 chapas entre café y cacao, mientras Juan juntó 22 chapas. ¿Quién cosechó MUCHAS más chapas en total?",
+        type: "options",
+        options: [
+          { text: "Juan cosechó más sacos/chapas que Dora.", correct: true },
+          { text: "Dora tiene más sacos/chapas que Juan.", correct: false },
+          { text: "Ambos cosecharon exactamente 5 chapas.", correct: false }
+        ],
+        explanation: "¡Así se hace! Juan juntó 22 chapas, superando en cantidad a la recolección de Dora."
+      },
+      {
+        id: 5,
+        title: "Reto 5: Cooperativa Sepahua (Gráfico de Barras) 📊",
+        question: "En el gráfico de barras: La familia Chávez cosechó 25 sacos de café y la familia Garambini cosechó 20 sacos. Completa: 'La familia Chávez tiene _____ sacos de café _____ la familia Garambini'.",
+        type: "options",
+        options: [
+          { text: "más ... que", correct: true },
+          { text: "menos ... que", correct: false },
+          { text: "tantos ... como", correct: false }
+        ],
+        explanation: "¡Correcto! Como 25 es mayor que 20, la familia Chávez tiene MÁS sacos QUE la familia Garambini."
+      },
+      {
+        id: 6,
+        title: "Reto 6: Equivalencias en la Cooperativa 🤝",
+        question: "La familia Armas cosechó 15 sacos de café. Según el gráfico de la cooperativa, ¿qué otra familia cosechó TANTO café COMO la familia Armas (misma cantidad)?",
+        type: "options",
+        options: [
+          { text: "Familia Mendoza (15 sacos)", correct: true },
+          { text: "Familia Rupay (30 sacos)", correct: false },
+          { text: "Familia Chuquillauri (5 sacos)", correct: false }
+        ],
+        explanation: "¡Excelente deducción! 'Tantos como' significa tener la misma cantidad: Mendoza y Armas tienen 15 sacos."
+      },
+      {
+        id: 7,
+        title: "Reto 7: Equivalencias de Valor Posicional 💡",
+        question: "Para empacar el cacao usaremos el sistema decimal. ¿A cuántas Unidades (U) equivale 1 Centena (1 C) de kilogramos de cacao?",
+        type: "options",
+        options: [
+          { text: "1 Centena (1 C) = 10 Decenas (D) = 100 Unidades (U)", correct: true },
+          { text: "1 Centena (1 C) = 5 Unidades (U)", correct: false },
+          { text: "1 Centena (1 C) = 10 Unidades (U)", correct: false }
+        ],
+        explanation: "¡Brillante! Recordamos que 1 Centena agrupa 10 Decenas o 100 Unidades ($1\\text{ C} = 10\\text{ D} = 100\\text{ U}$)."
+      },
+      {
+        id: 8,
+        title: "Reto 8: Sacos de Cacao y Kilos 🎒",
+        question: "Cada saco pequeño de cacao contiene 10 kg (1 Decena). Si Dora reunió 4 sacos de 10 kg y Juan reunió 6 sacos de 10 kg, ¿cuántos kilogramos de cacao tienen EN TOTAL entre los dos?",
+        type: "options",
+        options: [
+          { text: "100 kg (10 sacos de 10 kg = 1 Centena)", correct: true },
+          { text: "40 kg en total", correct: false },
+          { text: "500 kg en total", correct: false }
+        ],
+        explanation: "¡Genial! 4 sacos (40 kg) + 6 sacos (60 kg) = 10 sacos de 10 kg, lo que equivale a 100 kg."
+      },
+      {
+        id: 9,
+        title: "Reto 9: Agrupando la Cosecha de Guayabas 🍈",
+        question: "El tío de Raúl recolectó 24 sacos de guayaba de 10 kg cada uno. ¿Cuántos sacos GRANDES de 100 kg (Centenas) se pueden armar y cuántos sacos de 10 kg (Decenas) quedan sueltos?",
+        type: "options",
+        options: [
+          { text: "2 sacos de 100 kg y quedan 4 sacos de 10 kg (Total: 240 kg)", correct: true },
+          { text: "1 saco de 100 kg y quedan 2 sacos de 10 kg", correct: false },
+          { text: "5 sacos de 100 kg sin sobrantes", correct: false }
+        ],
+        explanation: "¡Muy bien agrupado! Con 20 sacos de 10 kg formas 2 sacos de 100 kg, y te quedan 4 sacos de 10 kg."
+      },
+      {
+        id: 10,
+        title: "Reto 10: Descomposición de Números Grandes 🔢",
+        question: "En el almacén central de Ucayali hay 3 sacos grandes de 100 kg de café y 8 sacos de 10 kg. ¿Qué cantidad total de kilogramos de café hay representados?",
+        type: "options",
+        options: [
+          { text: "380 kg (3 Centenas + 8 Decenas)", correct: true },
+          { text: "308 kg", correct: false },
+          { text: "500 kg", correct: false },
+          { text: "38 kg", correct: false }
+        ],
+        explanation: "¡Formidable! 3 sacos de 100 kg (300) + 8 sacos de 10 kg (80) = 380 kg de café."
+      }
+    ];
+
+    // ==========================================
+    // 3. LÓGICA DE FLUJO DEL JUEGO
+    // ==========================================
+    
+    function startGame(e) {
+      e.preventDefault();
+      const input = document.getElementById('studentName');
+      studentName = input.value.trim();
+
+      if (!studentName) {
+        alert("Por favor, escribe tu nombre completo para comenzar.");
+        return;
+      }
+
+      // Cambiar de pantalla
+      document.getElementById('screen-login').classList.add('hidden');
+      document.getElementById('screen-game').classList.remove('hidden');
+      document.getElementById('student-display').textContent = studentName;
+
+      // Iniciar cronómetro y variables
+      currentLevel = 0;
+      score = 0;
+      answersRecord = [];
+      totalSeconds = 0;
+      startTime = Date.now();
+      
+      timerInterval = setInterval(updateTimer, 1000);
+
+      renderQuestion();
+    }
+
+    function updateTimer() {
+      totalSeconds = Math.floor((Date.now() - startTime) / 1000);
+      const min = String(Math.floor(totalSeconds / 60)).padStart(2, '0');
+      const sec = String(totalSeconds % 60).padStart(2, '0');
+      document.getElementById('timer-display').textContent = `${min}:${sec}`;
+    }
+
+    function renderQuestion() {
+      const q = questions[currentLevel];
+      
+      // Actualizar Header e Indicadores
+      document.getElementById('level-badge').textContent = `Reto ${currentLevel + 1} / ${questions.length}`;
+      document.getElementById('score-display').textContent = score * 10;
+      
+      const progressPercent = ((currentLevel + 1) / questions.length) * 100;
+      document.getElementById('progress-bar').style.width = `${progressPercent}%`;
+
+      // Ocultar caja de feedback
+      const feedbackBox = document.getElementById('feedback-box');
+      feedbackBox.classList.add('hidden');
+
+      // Construir la tarjeta de la pregunta
+      const container = document.getElementById('question-container');
+      
+      let html = `
+        <div class="bg-amber-50/70 p-4 md:p-5 rounded-2xl border border-amber-200">
+          <h3 class="text-xl md:text-2xl font-black text-amber-900 mb-2">${q.title}</h3>
+          <p class="text-base md:text-lg text-slate-700 leading-relaxed">${q.question}</p>
+        </div>
+        <div class="grid grid-cols-1 gap-3">
+      `;
+
+      q.options.forEach((opt, idx) => {
+        const letters = ['A', 'B', 'C', 'D'];
+        html += `
+          <button onclick="checkAnswer(${idx})" id="opt-btn-${idx}"
+            class="btn-option w-full p-4 rounded-2xl border-2 border-slate-200 bg-white hover:border-emerald-400 hover:bg-emerald-50/40 text-left font-bold text-slate-700 text-base md:text-lg flex items-center gap-3 shadow-sm">
+            <span class="w-8 h-8 rounded-xl bg-emerald-100 text-emerald-800 flex items-center justify-center font-black text-sm shrink-0">
+              ${letters[idx]}
+            </span>
+            <span>${opt.text}</span>
+          </button>
+        `;
+      });
+
+      html += `</div>`;
+      container.innerHTML = html;
+    }
+
+    function checkAnswer(selectedIdx) {
+      const q = questions[currentLevel];
+      const isCorrect = q.options[selectedIdx].correct;
+      
+      // Deshabilitar todos los botones de opciones
+      q.options.forEach((_, idx) => {
+        const btn = document.getElementById(`opt-btn-${idx}`);
+        if (btn) btn.disabled = true;
+      });
+
+      const selectedBtn = document.getElementById(`opt-btn-${selectedIdx}`);
+
+      // Registrar detalle de ítem
+      if (isCorrect) {
+        score++;
+        answersRecord.push(`${currentLevel + 1}✓`);
+        playSound('correct');
+        selectedBtn.classList.remove('bg-white', 'border-slate-200');
+        selectedBtn.classList.add('bg-emerald-100', 'border-emerald-500', 'text-emerald-900');
+        showFeedback(true, "¡Excelente trabajo!", q.explanation);
+      } else {
+        answersRecord.push(`${currentLevel + 1}✗`);
+        playSound('wrong');
+        selectedBtn.classList.remove('bg-white', 'border-slate-200');
+        selectedBtn.classList.add('bg-red-100', 'border-red-400', 'text-red-900');
+        
+        // Destacar la correcta
+        const correctIdx = q.options.findIndex(o => o.correct);
+        const correctBtn = document.getElementById(`opt-btn-${correctIdx}`);
+        if(correctBtn) {
+          correctBtn.classList.add('ring-2', 'ring-emerald-500', 'bg-emerald-50');
+        }
+
+        showFeedback(false, "¡Estuviste muy cerca!", q.explanation);
+      }
+    }
+
+    function showFeedback(isCorrect, title, explanation) {
+      const box = document.getElementById('feedback-box');
+      const icon = document.getElementById('feedback-icon');
+      const titleEl = document.getElementById('feedback-title');
+      const textEl = document.getElementById('feedback-text');
+
+      box.classList.remove('hidden', 'bg-emerald-50', 'border-emerald-300', 'bg-amber-50', 'border-amber-300');
+
+      if (isCorrect) {
+        box.classList.add('bg-emerald-50', 'border-emerald-300');
+        icon.innerHTML = '🌟';
+        titleEl.className = 'font-bold text-lg text-emerald-800';
+      } else {
+        box.classList.add('bg-amber-50', 'border-amber-300');
+        icon.innerHTML = '💡';
+        titleEl.className = 'font-bold text-lg text-amber-800';
+      }
+
+      titleEl.textContent = title;
+      textEl.textContent = explanation;
+    }
+
+    function nextQuestion() {
+      currentLevel++;
+      if (currentLevel < questions.length) {
+        renderQuestion();
+      } else {
+        finishGame();
+      }
+    }
+
+    // ==========================================
+    // 4. PANTALLA FINAL Y ENVÍO A GOOGLE SHEETS
+    // ==========================================
+    function finishGame() {
+      clearInterval(timerInterval);
+
+      document.getElementById('screen-game').classList.add('hidden');
+      document.getElementById('screen-results').classList.remove('hidden');
+
+      const finalScoreFormatted = `${score}/${questions.length}`;
+      const detailFormatted = answersRecord.join(' ');
+
+      // Actualizar pantalla de resultados
+      document.getElementById('res-name').textContent = studentName;
+      document.getElementById('res-score').textContent = finalScoreFormatted;
+      document.getElementById('res-time').textContent = `${totalSeconds} s`;
+      document.getElementById('res-detail').textContent = detailFormatted;
+
+      // Efecto de Confeti si aprueba con 7 o más
+      if (score >= 7) {
+        launchConfetti();
+      }
+
+      // Enviar a Apps Script
+      sendResultsToSheet(finalScoreFormatted, detailFormatted);
+    }
+
+    function sendResultsToSheet(puntajeFormateado, detalleTexto) {
+      const statusDiv = document.getElementById('sheet-status');
+      
+      // Estructura de payload exacta indicada
+      const payload = {
+        nombre: studentName,
+        puntaje: puntajeFormateado,
+        detalle: detalleTexto,
+        tiempo: totalSeconds,
+        hoja: "Respuestas2"
+      };
+
+      fetch(URL_SCRIPT, {
+        method: "POST",
+        headers: { "Content-Type": "text/plain;charset=utf-8" },
+        body: JSON.stringify(payload)
+      })
+      .then(response => {
+        statusDiv.className = "p-4 rounded-2xl text-center text-sm font-bold flex items-center justify-center gap-2 bg-emerald-100 text-emerald-800 border border-emerald-300";
+        statusDiv.innerHTML = `<i class="fa-solid fa-circle-check text-xl"></i> <span>✅ Guardado en el registro docente</span>`;
+      })
+      .catch(error => {
+        console.error("Error al enviar datos:", error);
+        statusDiv.className = "p-4 rounded-2xl text-center text-sm font-bold flex items-center justify-center gap-2 bg-amber-100 text-amber-800 border border-amber-300";
+        statusDiv.innerHTML = `<i class="fa-solid fa-triangle-exclamation text-xl"></i> <span>⚠️ Juego completado. (Configura tu URL_SCRIPT para guardar en Sheets)</span>`;
+      });
+    }
+
+    function restartGame() {
+      document.getElementById('screen-results').classList.add('hidden');
+      document.getElementById('screen-login').classList.remove('hidden');
+      document.getElementById('studentName').value = '';
+    }
+
+    // ==========================================
+    // 5. ANIMACIÓN DE CONFETI EN CANVAS 2D
+    // ==========================================
+    function launchConfetti() {
+      const canvas = document.getElementById('confettiCanvas');
+      const ctx = canvas.getContext('2d');
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+
+      const pieces = [];
+      const colors = ['#f59e0b', '#10b981', '#3b82f6', '#ec4899', '#8b5cf6'];
+
+      for (let i = 0; i < 120; i++) {
+        pieces.push({
+          x: Math.random() * canvas.width,
+          y: Math.random() * canvas.height - canvas.height,
+          size: Math.random() * 10 + 5,
+          color: colors[Math.floor(Math.random() * colors.length)],
+          speedY: Math.random() * 3 + 2,
+          speedX: Math.random() * 2 - 1,
+          rotation: Math.random() * 360
+        });
+      }
+
+      let animationFrame;
+      function animate() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        let active = false;
+
+        pieces.forEach(p => {
+          p.y += p.speedY;
+          p.x += p.speedX;
+          p.rotation += 2;
+
+          ctx.save();
+          ctx.translate(p.x, p.y);
+          ctx.rotate((p.rotation * Math.PI) / 180);
+          ctx.fillStyle = p.color;
+          ctx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size);
+          ctx.restore();
+
+          if (p.y < canvas.height) active = true;
+        });
+
+        if (active) {
+          animationFrame = requestAnimationFrame(animate);
+        } else {
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
+        }
+      }
+
+      animate();
+    }
+
+    // Adaptar Canvas al redimensionar ventana
+    window.addEventListener('resize', () => {
+      const canvas = document.getElementById('confettiCanvas');
+      if (canvas) {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+      }
+    });
+  </script>
+</body>
+</html>
